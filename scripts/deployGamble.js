@@ -13,14 +13,14 @@ async function main() {
   
           //////////////// On deploy ici tout nos contracts ///////////////
 
-  /*const TokenC = await ethers.getContractFactory("TokenC");
+  const TokenC = await ethers.getContractFactory("TokenC");
 	const contractTokenC = await TokenC.deploy();
 
   await contractTokenC.deployed();
-  console.log("Contract Token C deployed at:", contractTokenC.address);*/
+  console.log("Contract Token C deployed at:", contractTokenC.address);
 
   const ProjectSolidityV2 = await ethers.getContractFactory("ProjectSolidityV2");
-	const contractProjectSolidityV2 = await ProjectSolidityV2.deploy("0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844","0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e","0x0510CF1Bdf9ddA465a43E886c5B85E90B71B2748");
+	const contractProjectSolidityV2 = await ProjectSolidityV2.deploy("0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844","0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e",contractTokenC.address);
 
   await contractProjectSolidityV2.deployed();
   console.log("Contract ProjectSolidityV2 deployed at:", contractProjectSolidityV2.address);

@@ -119,8 +119,9 @@ const Main = ({ accounts, setAccounts }) => {
 
         const options = {value: ethers.utils.parseEther("0.0041")};
         const reponse = await contractBet.makeBet(BigNumber.from(mintAmount),false,options);
-        const receipt = await reponse.wait(6);
+        const receipt = await reponse.wait(6); // wait 6 blocks
         console.log(receipt);
+        await timeout(180000);
         //console.log(receipt.events[0].args.playerEntryPrice.toString());
         /*console.log(receipt.events[0].args.more.toString());
         console.log(receipt.events[0].args.player.toString());
@@ -180,6 +181,11 @@ const Main = ({ accounts, setAccounts }) => {
     async function checkNonce(metaNonce) {
         
     }
+
+    function timeout(delay){
+        return new Promise(res => setTimeout(res,delay));
+    }
+
 
 
 
@@ -293,7 +299,7 @@ const Main = ({ accounts, setAccounts }) => {
                                     fontFamily="inherit"
                                     padding="15px"
                                     marginTop="10px"
-                                    onClick={betETHPrice}>allowance</Button>
+                                    onClick={betETHPrice}>Approve Text</Button>
                                 <Button
                                     backgroundColor="#D6517D"
                                     borderRadius="5px"

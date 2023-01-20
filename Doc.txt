@@ -1,0 +1,106 @@
+Project Solidity Proxy-Oracle-AMM
+
+1) Expliquation des Smarts contracts
+
+Le repo est composé de 7 Contracts et 1 Librarie
+
+3 Contracts sont des Tokens ERC20 // Token A, B et C
+
+Token A et B sont identique ils peuvent etre appellé pour Mint des Token au mgs.sender toutes les 5 minutes.
+Ils seront utilisé pour la partie AMM du project.
+Le Token C possede une fonction que permet de recharger un Smart Contract donné avec son address.
+Nous l'utiliserons pour la partie Oracle et prediction du prix de l'ETH.
+
+Nous avons ensuite 2 contracts Proxy et ProxyAdmin.
+ProxyAdmin a le controle sur Proxy, il permet de changer d'Admin(Owner) et l'implementation du Proxy.
+
+Et Proxy est un Transparent Proxy classique. Mais la particularité d'être controlé par un autre proxy.
+
+Enfin le contract ProjectSolidityV1 et V2. Ils ont le même code avec la difference que V2 permet de retirer la liquidité
+deposé sur l'AMM.
+
+Et la Librarie est utilisé pour garder des zones mémoires pour l'address du ProxyAdmin et de l'implementation.
+
+
+
+2) Proxy and AMM dans un Scripts
+
+Pour deployer et tester les fonctions des Smarts Contracts en liens avec les Proxys et l'AMM, 
+j'ai choisie de tout faire en local sur le script deployProxyAMM. Faire tout ça via un front est vraiment long
+et fastidieux.
+
+Si vous voulez tester pqr vous même:
+npx hardhat node
+npx hardhat run --network localhost scripts/deployProxyAMM.js
+
+-> Dans un premier temps on deploy en local:
+    les Tokens A, B et C
+    les Proxys
+    et les deux versions de ProjectSolidity
+
+-> On connect le Proxy avec l'address de la V1 et le ProxyAdmin
+    Et c'est tout pour notre Proxy
+    Toutes les interactions se feront qu trqvers des V1 et V2 ou bien avec ProxyAdmin
+
+-> A present les Tokens:
+    On charge le Proxy de Token C puis on verifie son soldes de Token.
+    On Mint des Token A et B pour un User (la première address proposé par Hardhat)
+        et dans la foulée on Approve une Tx pour une interaction avec le Proxy.
+
+-> On ajoute de la Liquidité à une pool A/B
+    Et on commence une petite série de test pour voir comment se comporte le Proxy/V1
+        On essaie de retirer la liquidité mais RemoveLiquitity n'existe pas dans V1.    ok
+        On essaie d'upgrade le Proxy pour la V2 puis on retire la liquidité. 
+            Mais upgrade ne peut être appelé que par ProxyAdmin                         ok
+        Et on essaie d' Attach le Proxy a la V2 mais le Proxy appelle lui même 
+            son slot dans lequel est garder son address d'implementation.               ok
+
+-> On se prepare pour faire un Swap
+    Après avoir Approve le Proxy on efectue un swap et on revérifie le solde de l'utilisateur.
+    Le swap est un success.
+
+-> Pour terminer on upgrade notre Proxy pour passer sur la V2
+    On utilise le ProxyAdmin pour la fonction upgrade
+    et on fait quand-même un attach car il ne s'agit pas d'un fix.
+    On ajoute une nouvelle fonction au contract, il faut "recharger/changer l'abi".
+
+-> Et on remove la liquidité de l'AMM
+    On se retrouve bien avec la même quantité de Token car l'AMM redistribue les fees au liquidityProviders
+
+
+3) L'oracle et les paries sur le prix de l'ETH
+
+Pour cette partie du projet il y a un front qui permet de mint des tokens et de les parier.
+On utilise uniquement le Token C et le contract ProjectSolidityV2
+
+Ces deux contracts sont deployé sur Goerli car Chainlink ne marche pas en local.
+On a utilisé le script deployGamble.js
+npx hardhat run --network goerli scripts/deployProxyAMM.js
+
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+Je sais qu'il y a une private key en dur dans le code.
+C'est une clée dedié au test. Je n'ai pas pris le temps de voir comment vous faire 
+utilisé des fonction onlyOwner car le .env n'est pas partagé lui non plus.
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+-> Dans l'ordre il faut recharger le Smart Contract avec des tokens C
+    cette méthode utlise les ETH du compte Owner des Smarts Contract
+    Cela permet au contract de rendre le double de la mise initiale du joueur si il a raison.
+
+
+-> Ensuite vous devez Mint vos Token C via votre Browser Wallet
+
+-> Pour parier vous devez choisir le nombre de token que vous voulez miser.
+    -Approve
+    -Bet C Token
+    -> On appelle le contract avec la somme que le veux miser et un bool (true si prix future est plus élevé)
+        On garde les infomations dans le smart contract
+        On attend 6 blocks puis 3 minutes (pour le plaisir)
+    -> Et on appelle une fonction onlyOwner qui verifie si le joueur a raison.
+        Si oui notre adminAccount transfer des Tokens C du smart Contract vers l'utilisateur
+J'ai choisie de faire comme ça afin que le joueur signe seulement 2 transactions
+La dernière fonction peux etre utilisé quand et comme je le souhaite.
+-> Il y a probablement moyen de tout faire signer d'un coup (trois à la suite) et de gardé la 3ème
+        -> mais il peut y avoir des problemes avec le nonce

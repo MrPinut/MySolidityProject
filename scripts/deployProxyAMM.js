@@ -56,13 +56,6 @@ async function main() {
   console.log("Contract ProjectSolidityV2 deployed at:", contractProjectSolidityV2.address);
 
                   //////////////////// Ici on prepare les contracts ////////////////
-  // On mint des tokenC pour le proxy pour permettre au joueur de parier sur le prix de l'ether
-  const versementTokenC = await TokenC.attach(contractTokenC.address);
-  await versementTokenC.chargeProxy(contractProxy.address);
-
-  const responseVersement = await versementTokenC.balanceOf(contractProxy.address);
-  var data = JSON.parse(responseVersement);
-  console.log("Le solde du Proxy en Token C est a present de: ",data);
 
   //Ici on connecte le proxy avec ProjectSolidityV1 et ProxyAdmin
   const connectionProxy = await Proxy.attach(contractProxy.address);
@@ -77,6 +70,13 @@ async function main() {
   const responseConnectionProject = await connectionProxyAdmin.getProxyImplementation(contractProxy.address);
   console.log("Depuis le contract Proxy Admin on voit que l'address du contract controlle par le proxy est: ",responseConnectionProject);
 
+  // On mint des tokenC pour le proxy pour permettre au joueur de parier sur le prix de l'ether
+  const versementTokenC = await TokenC.attach(contractTokenC.address);
+  await versementTokenC.chargeProxy(contractProxy.address);
+
+  const responseVersement = await versementTokenC.balanceOf(contractProxy.address);
+  var data = JSON.parse(responseVersement);
+  console.log("Le solde du Proxy en Token C est a present de: ",data);
 
   /// On se mint des token + allowance avec l'address du proxy
   const versementTokenA = await TokenA.attach(contractTokenA.address);

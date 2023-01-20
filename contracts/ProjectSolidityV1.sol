@@ -5,6 +5,7 @@ pragma solidity >=0.7.0 <0.9.0;
 //import "https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "../node_modules/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+
 //Token
 import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -21,13 +22,14 @@ contract ProjectSolidityV1 {
     mapping(address => int) playerPrediction;
     mapping(address => int) playerEntryPrice;
     uint today;
+
     
     /**
      * Network: Goerli
      * Aggregator: ETH/USD
      * Address: 0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e
      */
-    constructor(address _token0, address _token1,address _token2) {
+    constructor(address _token0, address _token1, address _token2) {
         admin = msg.sender;
 
         //Oracle
@@ -99,6 +101,13 @@ contract ProjectSolidityV1 {
         return x >= 0 ? x : -x;
     }
 
+    event retourPlaceBet(
+        int playerEntryPrice,
+        bool more,
+        address player,
+        uint amount
+    );
+
     function sendViaCall(address payable _to) public payable {
         // Call returns a boolean value indicating success or failure.
         // This is the current recommended method to use.
@@ -106,7 +115,7 @@ contract ProjectSolidityV1 {
         require(sent, "Failed to send Ether");
     }
 
-    function placeBet(uint amount, bool more) external payable returns (int, bool, address, uint){
+    function placeBet(uint amount, bool more) public payable returns (int, bool, address, uint){
         require (msg.value > 0.004 ether);
         require (token2.balanceOf(msg.sender) >= amount);
         address payable adminPayable = payable(admin);
@@ -114,6 +123,12 @@ contract ProjectSolidityV1 {
         token2.approve(address(this), amount);
         token2.transferFrom(msg.sender, address(this), amount);
         playerEntryPrice[msg.sender] = getLatestPrice();
+        emit retourPlaceBet(
+            playerEntryPrice[msg.sender],
+            more,
+            msg.sender,
+            amount
+        );
         return (playerEntryPrice[msg.sender], more, msg.sender, amount);
     }
 
@@ -128,6 +143,42 @@ contract ProjectSolidityV1 {
 
     }
 
+    int price1;
+    address player1;
+    uint _amount2;
+    bool _more1;
+    bool openToBets = true;
+
+    function makeBet(uint amount, bool more) external payable {
+        require (msg.value > 0.004 ether);
+        require (token2.balanceOf(msg.sender) >= amount);
+        require (openToBets);
+        openToBets = false;
+
+        address payable adminPayable = payable(admin);
+        sendViaCall(adminPayable);
+        token2.approve(address(this), amount);
+        token2.transferFrom(msg.sender, address(this), amount);
+        price1 = getLatestPrice();
+        player1 = msg.sender;
+        _amount2 = amount;
+        _more1 = more;
+    }
+
+    function repayPlayer() external payable {
+        require(msg.sender == admin);
+        require(!openToBets);
+
+        int newPrice = getLatestPrice();
+
+        if( (price1 < newPrice) == _more1 ){
+            token2.transfer(player1,_amount2*2);
+        }
+
+        openToBets = true;
+
+    }
+
 
 
     //////////////////// AMM //////////////////
@@ -135,7 +186,6 @@ contract ProjectSolidityV1 {
     IERC20 public immutable token0;
     IERC20 public immutable token1;
     IERC20 public immutable token2;
-
 
     uint public reserve0;
     uint public reserve1;
@@ -148,13 +198,13 @@ contract ProjectSolidityV1 {
         return balanceOf[user];
     }
 
+    function getReserve() public view returns (uint){
+        return reserve0;
+    }
+
     function _mint(address _to, uint _amount) private {
         balanceOf[_to] += _amount;
         totalSupply += _amount;
-    }
-
-    function getReserve() public view returns (uint){
-        return reserve0;
     }
 
     function _burn(address _from, uint _amount) private {
@@ -170,9 +220,6 @@ contract ProjectSolidityV1 {
     function setFees(uint newFees) public {
         require(msg.sender == admin);
         fees = newFees;
-    }
-    function getFees() public view returns (uint){
-        return fees;
     }
 
 
@@ -243,6 +290,24 @@ contract ProjectSolidityV1 {
         return x <= y ? x : y;
     }
 
-    
+    function removeLiquidity(
+        uint _shares
+    ) external returns (uint amount0, uint amount1) {
+        
+        // bal0 >= reserve0
+        // bal1 >= reserve1
+        uint bal0 = token0.balanceOf(address(this));
+        uint bal1 = token1.balanceOf(address(this));
+
+        amount0 = (_shares * bal0) / totalSupply;
+        amount1 = (_shares * bal1) / totalSupply;
+        require(amount0 > 0 && amount1 > 0, "amount0 or amount1 = 0");
+
+        _burn(msg.sender, _shares);
+        _update(bal0 - amount0, bal1 - amount1);
+
+        token0.transfer(msg.sender, amount0);
+        token1.transfer(msg.sender, amount1);
+    }
 
 }
