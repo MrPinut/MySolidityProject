@@ -146,7 +146,7 @@ const Main = ({ accounts, setAccounts }) => {
             const adminAccount = new ethers.Wallet(
                 '4985494784ec88101fca6b8716f0b52b86ef5a3d28269f46670cdf5d016b0434', provider2
             )
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            //const provider = new ethers.providers.Web3Provider(window.ethereum);
             // const signer = provider.getSigner();
             const contractBet2    = new ethers.Contract(
                 projectSolidityV2Address,
