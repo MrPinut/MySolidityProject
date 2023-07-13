@@ -18,7 +18,7 @@ const tokenCAddress = "0x0510CF1Bdf9ddA465a43E886c5B85E90B71B2748";
 const projectSolidityV2Address = "0x087f3B475E7A8d5f19F0ad4161129c44B4c55568";
 
 const Main = ({ accounts, setAccounts }) => {
-    const [mintAmount, setMintAmount, text] = useState(1);
+    const [mintAmount, setMintAmount] = useState(1); //const [mintAmount, setMintAmount, text] = useState(1);
     const isConnected = Boolean(accounts[0]);
 
     async function mintForSmartContract() {
@@ -74,11 +74,11 @@ const Main = ({ accounts, setAccounts }) => {
                 tokenC.abi,
                 signer
             );
-            const contractBet = new ethers.Contract(
-                projectSolidityV2Address,
-                projectSolidityV2.abi,
-                signer
-            );
+            // const contractBet = new ethers.Contract(
+            //     projectSolidityV2Address,
+            //     projectSolidityV2.abi,
+            //     signer
+            // );
             try {
                 console.log('approve');
                 const reponse = await contractTokenC.approve(projectSolidityV2Address,BigNumber.from(mintAmount));
@@ -147,7 +147,7 @@ const Main = ({ accounts, setAccounts }) => {
                 '4985494784ec88101fca6b8716f0b52b86ef5a3d28269f46670cdf5d016b0434', provider2
             )
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            // const signer = provider.getSigner();
             const contractBet2    = new ethers.Contract(
                 projectSolidityV2Address,
                 projectSolidityV2.abi,
@@ -178,9 +178,9 @@ const Main = ({ accounts, setAccounts }) => {
         setMintAmount(mintAmount + 1);
     };
 
-    async function checkNonce(metaNonce) {
+    // async function checkNonce(metaNonce) {
         
-    }
+    // }
 
     function timeout(delay){
         return new Promise(res => setTimeout(res,delay));
