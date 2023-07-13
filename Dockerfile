@@ -9,7 +9,7 @@ FROM node:19.4.0 AS builder
 
 WORKDIR /app
 
-COPY /MySolidityProject/ .
+COPY . .
 
 RUN npm install
 RUN npm run build
