@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     name: Dockerise and Push
     steps:
-      - name: git-checkout
-        uses: actions/checkout@v2
+      # - name: git-checkout
+      #   uses: actions/checkout@v2
 
-      - name: Install all dependencies
-        run: npm install
+      # - name: Install all dependencies
+      #   run: npm install
 
-      - name: Build
-        run: npm run build # The build command of your project
+      # - name: Build
+      #   run: npm run build # The build command of your project
 
       - name: Dockerise set-up
         uses: docker/setup-qemu-action@v2
