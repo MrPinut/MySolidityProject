@@ -194,7 +194,7 @@ const Main = ({ accounts, setAccounts }) => {
             <Box width="520px">
                 <div>
                     <Text fontSize="48px"
-                        textShadow="0 5px #000000">Project Orcale </Text>
+                        textShadow="0 5px #000000">Project Orcale 2</Text>
                     <Text fontSize="30px"
                         textShadow="0 2px 2px #000000"
                         fontFamily="VT323"
